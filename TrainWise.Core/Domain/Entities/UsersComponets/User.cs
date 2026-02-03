@@ -8,6 +8,7 @@ namespace TrainWise.Core.Domain.Entities.UsersComponets
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Email {get;set;}
         public DateTime CreateAt { get; set; }
         public UserPreferences Preferences { get; set; }
 
@@ -18,10 +19,10 @@ namespace TrainWise.Core.Domain.Entities.UsersComponets
         public ICollection<VolumeAnalysis> VolumeAnalyses { get; set; }
 
         protected User() {}
-        public User(string name)
+        public User(string name, string email)
 
         {
-       
+            Email = email;
             Name = name;
             CreateAt = DateTime.UtcNow;
             WorkoutPlans = new List<WorkoutPlan>();
