@@ -6,7 +6,7 @@ namespace TrainWise.Core.Domain.Entities.UsersComponets
 {
     public class User
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public DateTime CreateAt { get; set; }
         public UserPreferences Preferences { get; set; }

@@ -34,7 +34,7 @@ namespace TrainWise.Core.Domain.Entities.WorkoutAnalysis
         public Exercise Exercise { get; private set; }
         public WorkoutPlan WorkoutPlan { get; private set; }
 
-        protected AiRecommendation() { } // EF
+        protected AiRecommendation() { } 
 
         public AiRecommendation(int userId,RecommendationType type, string title,string description,
             RecommendationPriority priority,

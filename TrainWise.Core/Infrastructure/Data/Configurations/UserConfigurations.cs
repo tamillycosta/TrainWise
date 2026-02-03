@@ -11,8 +11,6 @@ using Newtonsoft.Json;
 
 namespace TrainWise.Core.Infrastructure.Data.Configurations {
 
-
-
     public class UserConfigurations : IEntityTypeConfiguration<User>
     {
         public void Configure(EntityTypeBuilder<User> builder){

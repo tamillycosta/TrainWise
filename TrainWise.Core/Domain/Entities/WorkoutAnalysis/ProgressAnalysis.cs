@@ -1,5 +1,6 @@
 using TrainWise.Core.Domain.Entities.UsersComponets;
 using TrainWise.Core.Domain.Entities.WorkoutComponents;
+
 namespace TrainWise.Core.Domain.Entities.WorkoutAnalysis
 {
     public class ProgressAnalysis
