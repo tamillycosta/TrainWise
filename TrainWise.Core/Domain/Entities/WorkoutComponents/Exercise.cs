@@ -9,17 +9,18 @@ namespace TrainWise.Core.Domain.Entities.WorkoutComponents
     public class Exercise
     {
         public int Id { get; set; }
+        public string ExternalId { get; set; }
         public string Name { get; set; }
         public MuscleGroupType PrimaryMuscleGroup { get; set; }
         public List<MuscleGroupType> SecondaryMuscles { get; set; }
-       
+
         // Imagem / Gifs / Videos
         public string ImagePath { get; private set; }
         public string MediaPath { get; private set; }
         public MediaType MediaType { get; private set; }
-        
+
         public bool IsCompound { get; set; } // Exercício composto ou isolado
-        
+
         // Relacionamentos
         public ICollection<WorkoutTemplateExercise> WorkoutTemplateExercises { get; set; }
         public ICollection<PerformanceSnapshot> PerformanceSnapshots { get; set; }
@@ -32,6 +33,13 @@ namespace TrainWise.Core.Domain.Entities.WorkoutComponents
             WorkoutTemplateExercises = new List<WorkoutTemplateExercise>();
             PerformanceSnapshots = new List<PerformanceSnapshot>();
             ProgressAnalyses = new List<ProgressAnalysis>();
+        }
+
+        public void SetMedia(string imagePath, string mediaPath, MediaType mediaType)
+        {
+            ImagePath = imagePath;
+            MediaPath = mediaPath;
+            MediaType = mediaType;
         }
     }
 
