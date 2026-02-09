@@ -15,9 +15,9 @@ namespace TrainWise.Core.Domain.Entities.WorkoutComponents
         public List<MuscleGroupType> SecondaryMuscles { get; set; }
 
         // Imagem / Gifs / Videos
-        public string ImagePath { get; private set; }
-        public string MediaPath { get; private set; }
-        public MediaType MediaType { get; private set; }
+        public string? ImagePath { get; private set; }
+        public string? MediaPath { get; private set; }
+        public MediaType? MediaType { get; private set; }
 
         public bool IsCompound { get; set; } // Exercício composto ou isolado
 

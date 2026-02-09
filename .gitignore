@@ -74,7 +74,7 @@ obj/
 *.sqlite3
 
 ## Arquivos de configuração com secrets
-appsettings.Development.json
+./appsetings.json
 appsettings.Local.json
 *.user.json
 
@@ -94,3 +94,4 @@ build/
 ## Arquivos do OS
 .DS_Store
 Thumbs.db
+

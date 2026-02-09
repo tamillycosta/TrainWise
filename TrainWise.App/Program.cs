@@ -1,51 +1,66 @@
-﻿using Microsoft.Extensions.Configuration;
-using TrainWise.Core.Infrastructure.Config;
-using TrainWise.Core.Application.Interfaces;
-using Api.Configuration;
+﻿using Api.Configuration;
+using Application.Interfaces;
+using Application.Services;
 using Infrastructure.Api.DbClient;
-using Microsoft.Extensions.Options;
+using Infrastructure.CloudStorage;
+using Microsoft.EntityFrameworkCore;
+using TrainWise.App.Infrastructure.Persistence.Repositories;
+using TrainWise.Core.Application.Interfaces;
+using TrainWise.Core.Infrastructure.Data.Context;
 
-DatabaseConfig.Start();
 
-// Carrega configurações manualmente
-var configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsetings.json", optional: false)
-    .Build();
+var builder = WebApplication.CreateBuilder(args);
+builder.Configuration
+   
+    .AddJsonFile("appsetings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsetings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
 
-var exerciseDbSettings = new ExerciseDbSettings();
-configuration.GetSection("ExerciseDb").Bind(exerciseDbSettings);
 
-// Cria o client manualmente
-var httpClient = new HttpClient();
-var options = Options.Create(exerciseDbSettings);
-var exerciseClient = new ExerciseDbClient(httpClient, options);
+// ========== Db ==========
+builder.Services.AddDbContext<WorkoutDbContext>(options =>
+    options.UseSqlite("Data Source=trainwise.db"));
 
-// Testa buscar exercícios
-Console.WriteLine("Buscando exercícios da API...");
-try
+
+
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 {
-    var exercises = await exerciseClient.GetAllExercisesAsync();
-    Console.WriteLine($"Total de exercícios encontrados: {exercises.Count}");
-
-    if (exercises.Any())
-    {
-        var first = exercises.First();
-        Console.WriteLine($"\nPrimeiro exercício:");
-        Console.WriteLine($"Nome: {first.Name}");
-        Console.WriteLine($"Músculo alvo: {first.Target}");
-
-        Console.WriteLine("\nBaixando GIF do exercício...");
-        var gifBytes = await exerciseClient.DownloadGifAsync(first.Id);
-        Console.WriteLine($"GIF baixado! Tamanho: {gifBytes.Length / 1024} KB");
-    }
-
-    var exercise = await exerciseClient.GetExerciseByIdAsync("0002");
-    Console.WriteLine($"\nExercicio buscado pelo id");
-    Console.WriteLine($"Nome: {exercise.Name}");
-    Console.WriteLine($"Músculo alvo: {exercise.Target}");
-    Console.WriteLine($"GIF URL: {exercise.GifUrl}");
+    var context = scope.ServiceProvider.GetRequiredService<WorkoutDbContext>();
+    context.Database.Migrate();
+    Console.WriteLine("Banco criado/atualizado com sucesso!");
 }
-catch (Exception ex)
+
+// ========== CONFIG ==========
+builder.Services.Configure<ExerciseDbSettings>(
+    builder.Configuration.GetSection("ExerciseDb"));
+
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("Cloudinary"));
+
+// ========== HTTP CLIENT ==========
+builder.Services.AddHttpClient<IExerciseApiClient, ExerciseDbClient>();
+
+// ========== SERVICES ==========
+builder.Services.AddScoped<ICloudStorageService, CloudinaryService>();
+builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
+builder.Services.AddScoped<IExercisePopulationService, ExercisePopulationService>();
+
+// ========== MVC/API ==========
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// ========== MIDDLEWARE ==========
+if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine($"Erro: {ex.Message}");
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
