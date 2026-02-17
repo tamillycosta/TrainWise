@@ -18,8 +18,10 @@ namespace TrainWise.Core.Domain.Entities.WorkoutComponents
         public string? ImagePath { get; private set; }
         public string? MediaPath { get; private set; }
         public MediaType? MediaType { get; private set; }
-
         public bool IsCompound { get; set; } // Exercício composto ou isolado
+
+        public bool IsApproved { get; set; } = false;
+        public DateTime? ApprovedAt { get; set; }
 
         // Relacionamentos
         public ICollection<WorkoutTemplateExercise> WorkoutTemplateExercises { get; set; }
@@ -40,6 +42,19 @@ namespace TrainWise.Core.Domain.Entities.WorkoutComponents
             ImagePath = imagePath;
             MediaPath = mediaPath;
             MediaType = mediaType;
+        }
+
+
+        public void Approve()
+        {
+            IsApproved = true;
+            ApprovedAt = DateTime.UtcNow;
+        }
+
+        public void Reject()
+        {
+            IsApproved = false;
+            ApprovedAt = null;
         }
     }
 
