@@ -6,6 +6,7 @@ using Infrastructure.CloudStorage;
 using Microsoft.EntityFrameworkCore;
 using TrainWise.App.Infrastructure.Persistence.Repositories;
 using TrainWise.Core.Application.Interfaces;
+using TrainWise.Core.Application.Services;
 using TrainWise.Core.Infrastructure.Data.Context;
 
 
@@ -19,28 +20,21 @@ builder.Configuration
 
 // ========== Db ==========
 builder.Services.AddDbContext<WorkoutDbContext>(options =>
-    options.UseSqlite("Data Source=trainwise.db"));
+    options.UseSqlite("Data Source=trainwise.db;Mode=ReadWriteCreate;Cache=Shared"));
 
 
 
-using (var scope = builder.Services.BuildServiceProvider().CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<WorkoutDbContext>();
-    context.Database.Migrate();
-    Console.WriteLine("Banco criado/atualizado com sucesso!");
-}
 
-// ========== CONFIG ==========
-builder.Services.Configure<ExerciseDbSettings>(
-    builder.Configuration.GetSection("ExerciseDb"));
+// ======== CONFIG ==========
+
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("Cloudinary"));
 
-// ========== HTTP CLIENT ==========
-builder.Services.AddHttpClient<IExerciseApiClient, ExerciseDbClient>();
+
 
 // ========== SERVICES ==========
+builder.Services.AddHttpClient<IExerciseApiClient, ExerciseDbClient>();
 builder.Services.AddScoped<ICloudStorageService, CloudinaryService>();
 builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
 builder.Services.AddScoped<IExercisePopulationService, ExercisePopulationService>();
@@ -51,6 +45,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<WorkoutDbContext>();
+    context.Database.Migrate();
+    Console.WriteLine("Banco criado/atualizado com sucesso!");
+}
+
 
 // ========== MIDDLEWARE ==========
 if (app.Environment.IsDevelopment())

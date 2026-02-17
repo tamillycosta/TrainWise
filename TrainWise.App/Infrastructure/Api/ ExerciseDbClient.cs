@@ -16,22 +16,25 @@ namespace Infrastructure.Api.DbClient
     public class ExerciseDbClient : IExerciseApiClient
     {
         private readonly HttpClient _httpClient;
-        private readonly ExerciseDbSettings _configs;
+        
 
+         private const string ExercisesJsonUrl =
+            "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json";
 
-        public ExerciseDbClient(HttpClient httpClient, IOptions<ExerciseDbSettings> configs)
+        // Base URL das imagens
+        private const string ImageBaseUrl =
+            "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+
+        public ExerciseDbClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _configs = configs.Value;
-
-            _httpClient.BaseAddress = new Uri(_configs.BaseUrl);
-            _httpClient.DefaultRequestHeaders.Add("X-RapidAPI-Key", _configs.ApiKey);
-            _httpClient.DefaultRequestHeaders.Add("X-RapidAPI-Host", "exercisedb.p.rapidapi.com");
+            
+           
         }
 
         public async Task<List<ExternalExerciseDto>> GetAllExercisesAsync()
         {
-            var response = await _httpClient.GetAsync("exercises");
+            var response = await _httpClient.GetAsync(ExercisesJsonUrl);
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -42,21 +45,34 @@ namespace Infrastructure.Api.DbClient
 
         public async Task<ExternalExerciseDto> GetExerciseByIdAsync(string id)
         {
-            var response = await _httpClient.GetAsync($"exercises/exercise/{id}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<ExternalExerciseDto>(content) ?? new ExternalExerciseDto();
+              var all = await GetAllExercisesAsync();
+             return all.FirstOrDefault(e => e.Id == id);
         }
 
-        public async Task<byte[]> DownloadGifAsync(string exerciseId, string resolution = "360")
+        public async Task<byte[]> DownloadGifAsync(string exerciseId)
         {
-        var url = $"image?exerciseId={exerciseId}&resolution={resolution}&rapidapi-key={_configs.ApiKey}";
+            var exercise = await GetExerciseByIdAsync(exerciseId);
+
+            if (exercise.Images == null || !exercise.Images.Any())
+            {
+                throw new Exception($"Exercicio {exerciseId} não possui imagem");
+            }
+            var imagePath = exercise.Images.Count > 1 
+                ? exercise.Images[1] 
+                : exercise.Images[0];
+
+            return await DownloadImageAsync(imagePath);
+
+        }
+
+        public async Task<byte[]> DownloadImageAsync(string imageRelativePath)
+        {
+            var url =  $"{ImageBaseUrl}{imageRelativePath}";
         
-        var response = await _httpClient.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-        
-        return await response.Content.ReadAsByteArrayAsync();
-         }
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            
+            return await response.Content.ReadAsByteArrayAsync();
+        }
     }
 }

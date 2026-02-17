@@ -10,6 +10,8 @@ namespace TrainWise.Core.Application.Interfaces
     {
         Task<List<ExternalExerciseDto>> GetAllExercisesAsync();
         Task<ExternalExerciseDto> GetExerciseByIdAsync(string id);
-        Task<byte[]> DownloadGifAsync(string exerciseId,string resolution = "360" );
+        Task<byte[]> DownloadGifAsync(string exerciseId);
+        Task<byte[]> DownloadImageAsync(string imageRelativePath);
+        
     }
 }   
