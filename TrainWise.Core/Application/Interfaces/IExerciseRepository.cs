@@ -12,27 +12,37 @@ namespace Application.Interfaces
         Task<Exercise?> GetByExternalIdAsync(string externalId);
         Task<Exercise?> GetByNameAsync(string name);
         Task<List<Exercise>> GetAllAsync();
-        
+
         // Queries filtradas
         Task<List<Exercise>> GetByMuscleGroupAsync(MuscleGroupType muscleGroup);
         Task<List<Exercise>> GetCompoundExercisesAsync();
         Task<List<Exercise>> GetIsolationExercisesAsync();
-        
+
         // Paginação
         Task<(List<Exercise> exercises, int totalCount)> GetPagedAsync(
-            int pageNumber, 
+            int pageNumber,
             int pageSize,
             MuscleGroupType? muscleGroupFilter = null);
-        
+
         // Comandos
         Task<Exercise> AddAsync(Exercise exercise);
         Task<Exercise> UpdateAsync(Exercise exercise);
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
         Task<bool> ExistsByExternalIdAsync(string externalId);
-        
+
         // Bulk operations 
         Task AddRangeAsync(IEnumerable<Exercise> exercises);
         Task<int> CountAsync();
+
+
+        // Aproveds
+        Task<(List<Exercise> exercises, int totalCount)> GetPedingPageAsync(int page, int pageSize);
+        Task<List<Exercise>> GetApprovedAsync();
+        Task ApproveBatchAsync(List<int> ids);
+        Task DeleteBatchAsync(List<int> ids);
+        Task<List<string>> GetApprovedExternalIdsAsync();
+
+       
     }
 }

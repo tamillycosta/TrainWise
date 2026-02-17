@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using SQLitePCL;
 using TrainWise.Core.Domain.Entities.WorkoutComponents;
 using TrainWise.Core.Infrastructure.Data.Context;
 
@@ -7,15 +8,20 @@ namespace TrainWise.App.Infrastructure.Persistence.Repositories
 {
     public class ExerciseRepository : IExerciseRepository
     {
-        private readonly WorkoutDbContext _context; 
-        
+
+        private readonly WorkoutDbContext _context;
+
+
         public ExerciseRepository(WorkoutDbContext context)
         {
             _context = context;
         }
 
+
+        // ============ APROVED SEEDS =============
+
         // ========== QUERIES BÁSICAS ==========
-        
+
         public async Task<Exercise?> GetByIdAsync(int id)
         {
             return await _context.Exercises
@@ -70,13 +76,13 @@ namespace TrainWise.App.Infrastructure.Persistence.Repositories
         // ========== PAGINAÇÃO ==========
 
         public async Task<(List<Exercise> exercises, int totalCount)> GetPagedAsync(
-            int pageNumber, 
+            int pageNumber,
             int pageSize,
             MuscleGroupType? muscleGroupFilter = null)
         {
             var query = _context.Exercises.AsQueryable();
 
-           
+
             if (muscleGroupFilter.HasValue)
             {
                 query = query.Where(e => e.PrimaryMuscleGroup == muscleGroupFilter.Value);
@@ -140,6 +146,65 @@ namespace TrainWise.App.Infrastructure.Persistence.Repositories
         public async Task<int> CountAsync()
         {
             return await _context.Exercises.CountAsync();
+        }
+
+
+        // ========== APROVED SEEDS ==========
+        public async Task<(List<Exercise> exercises, int totalCount)> GetPedingPageAsync(int page, int pageSize)
+        {
+            var query = _context.Exercises.Where(e => !e.IsApproved);
+
+            var totalCount = await query.CountAsync();
+
+            var exercises = await query
+                .OrderBy(e => e.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (exercises, totalCount);
+        }
+
+        public async Task<List<string>> GetApprovedExternalIdsAsync()
+        {
+            return await _context.Exercises
+                .Where(e => e.IsApproved)
+                .Select(e => e.ExternalId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Exercise>> GetApprovedAsync()
+        {
+            return await _context.Exercises
+            .Where(e => e.IsApproved && string.IsNullOrEmpty(e.MediaPath))
+            .OrderBy(e => e.Name)
+            .ToListAsync();
+        }
+
+        public async Task ApproveBatchAsync(List<int> ids)
+        {
+            var exercises = await _context.Exercises
+            .Where(e => ids.Contains(e.Id))
+            .ToListAsync();
+
+            foreach (var exercise in exercises)
+            {
+                exercise.Approve();
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task DeleteBatchAsync(List<int> ids)
+        {
+             var exercises = await _context.Exercises
+            .Where(e => ids.Contains(e.Id))
+            .ToListAsync();
+
+            _context.Exercises.RemoveRange(exercises);
+            await _context.SaveChangesAsync();
+
         }
     }
 }

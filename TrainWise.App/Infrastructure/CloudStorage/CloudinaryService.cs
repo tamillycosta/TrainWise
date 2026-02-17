@@ -34,9 +34,18 @@ namespace Infrastructure.CloudStorage
                 Folder = $"trainwise/{folder}",
                 PublicId = Path.GetFileNameWithoutExtension(fileName),
                 Overwrite = false,
-                UniqueFilename = true
+                UniqueFilename = true,
 
+
+                 Format = "jpg",
+                 Transformation = new Transformation()
+                    .Width(300)
+                    .Height(300)
+                    .Crop("fill")
+                    .Quality("auto:good")
+                    .FetchFormat("jpg")
             };
+
             var result = await _cloudinary.UploadAsync(uploudParams);
             if(result.Error != null ){
                 throw new Exception("$Cloudinary upload error: {result.Error.Message}");
